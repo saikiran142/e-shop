@@ -4,6 +4,8 @@ import { ShoppingCart, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import type { RootState } from '../store/store';
 import SearchBar from './SearchBar';
+import { FiShoppingCart } from 'react-icons/fi';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,14 +22,12 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white shadow-navbar sticky top-0 z-50">
+    <nav className="bg-white dark:bg-dark-secondary shadow-navbar sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              E-Shop
-            </span>
+          <Link to="/" className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            E-Shop
           </Link>
 
           {/* Desktop Navigation */}
@@ -36,11 +36,7 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm font-medium transition-colors duration-200 ${
-                  isActive(link.path)
-                    ? 'text-primary-600'
-                    : 'text-gray-600 hover:text-primary-600'
-                }`}
+                className={`text-gray-700 dark:text-dark-primary hover:text-primary-600 dark:hover:text-primary-400`}
               >
                 {link.label}
               </Link>
@@ -53,18 +49,21 @@ const Navbar = () => {
           </div>
 
           {/* Cart and Mobile Menu Button */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <Link
               to="/cart"
-              className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors duration-200"
+              className="relative text-gray-700 dark:text-dark-primary hover:text-primary-600 dark:hover:text-primary-400 p-2"
             >
-              <ShoppingCart className="w-6 h-6" />
+              <FiShoppingCart className="w-6 h-6" />
               {cartTotal > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-fade-in">
+                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartTotal}
                 </span>
               )}
             </Link>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Mobile Menu Button */}
             <button

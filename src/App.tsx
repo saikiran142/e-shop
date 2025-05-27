@@ -20,9 +20,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <Router>
-          <div className="min-h-screen flex flex-col bg-gray-50">
+          <div className="min-h-screen bg-white dark:bg-dark-primary text-gray-900 dark:text-dark-primary transition-colors duration-200">
             <Navbar />
-            <main className="flex-grow">
+            <div className="container mx-auto px-4 py-8">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
@@ -32,7 +32,7 @@ function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/confirmation" element={<Confirmation />} />
               </Routes>
-            </main>
+            </div>
             <footer className="bg-white border-t mt-auto">
               <div className="container mx-auto px-4 py-6">
                 <p className="text-center text-gray-600">
