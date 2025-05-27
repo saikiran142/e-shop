@@ -9,6 +9,7 @@ import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Checkout from './pages/Checkout';
+import Confirmation from './pages/Confirmation';
 import './index.css';
 
 // Create a client
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/confirmation" element={<Confirmation />} />
               </Routes>
             </main>
             <footer className="bg-white border-t mt-auto">

@@ -9,19 +9,55 @@ import { checkoutSchema, type CheckoutFormData } from '../schemas/checkoutSchema
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-// Replace with your Stripe publishable key
-const stripePromise = loadStripe('pk_test_51NkXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
+// Initialize Stripe with the publishable key from environment variable
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const steps = ['Shipping', 'Payment', 'Review'];
 
-const PaymentForm = ({ onSuccess }: { onSuccess: () => void }) => {
+const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: { 
+  onSuccess: () => void; 
+  onValidate: (isValid: boolean) => void;
+  onProcessPayment: (processPaymentFn: () => Promise<boolean>) => void;
+}) => {
   const stripe = useStripe();
   const elements = useElements();
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  const handlePayment = async () => {
-    if (!stripe || !elements) return;
+  const validateCard = async () => {
+    if (!stripe || !elements) return false;
+
+    setProcessing(true);
+    setPaymentError(null);
+
+    try {
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) throw new Error('Card element not found');
+
+      const { error } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+      });
+
+      if (error) {
+        setPaymentError(error.message || 'Invalid card details');
+        onValidate(false);
+        return false;
+      } else {
+        onValidate(true);
+        return true;
+      }
+    } catch (err) {
+      setPaymentError('An unexpected error occurred');
+      onValidate(false);
+      return false;
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const processPayment = async () => {
+    if (!stripe || !elements) return false;
 
     setProcessing(true);
     setPaymentError(null);
@@ -37,26 +73,31 @@ const PaymentForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
       if (error) {
         setPaymentError(error.message || 'Payment failed');
+        return false;
       } else {
-        // Simulate successful payment
         console.log('Payment successful:', paymentMethod);
         onSuccess();
+        return true;
       }
     } catch (err) {
       setPaymentError('An unexpected error occurred');
       console.error('Payment error:', err);
+      return false;
     } finally {
       setProcessing(false);
     }
   };
 
+  // Expose processPayment to parent
+  onProcessPayment(processPayment);
+
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block mb-2 text-sm font-medium text-gray-700">
           Card Details
         </label>
-        <div className="p-3 border border-gray-300 rounded-lg bg-white">
+        <div className="p-3 bg-white border border-gray-300 rounded-lg">
           <CardElement
             options={{
               style: {
@@ -66,16 +107,18 @@ const PaymentForm = ({ onSuccess }: { onSuccess: () => void }) => {
                   '::placeholder': {
                     color: '#aab7c4',
                   },
+                  iconColor: '#6772e5',
                 },
                 invalid: {
                   color: '#9e2146',
                 },
               },
+              hidePostalCode: true,
             }}
           />
         </div>
         {paymentError && (
-          <p className="text-red-500 text-sm mt-2">{paymentError}</p>
+          <p className="mt-2 text-sm text-red-500">{paymentError}</p>
         )}
       </div>
       <div className="text-sm text-gray-500">
@@ -83,20 +126,25 @@ const PaymentForm = ({ onSuccess }: { onSuccess: () => void }) => {
         <p>Any future date for expiry</p>
         <p>Any 3 digits for CVC</p>
       </div>
-      <button
-        type="button"
-        onClick={handlePayment}
-        disabled={!stripe || processing}
-        className="w-full bg-primary-600 text-white py-2.5 px-4 rounded-lg hover:bg-primary-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-      >
-        {processing ? 'Processing...' : 'Pay Now'}
-      </button>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={validateCard}
+          disabled={!stripe || processing}
+          className="btn btn-primary"
+        >
+          {processing ? 'Validating...' : 'Next'}
+        </button>
+      </div>
     </div>
   );
 };
 
 const Checkout = () => {
   const [activeStep, setActiveStep] = useState(1);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isCardValid, setIsCardValid] = useState(false);
+  const [processPayment, setProcessPayment] = useState<(() => Promise<boolean>) | null>(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items: cartItems, total } = useSelector((state: RootState) => state.cart);
@@ -116,7 +164,7 @@ const Checkout = () => {
       // Process payment and create order
       console.log('Order submitted:', data);
       dispatch(clearCart());
-      navigate('/orders');
+      navigate('/confirmation');
     } else {
       setActiveStep((prevStep) => prevStep + 1);
     }
@@ -139,11 +187,22 @@ const Checkout = () => {
     }
   };
 
+  const handlePlaceOrder = async () => {
+    if (isCardValid && processPayment) {
+      const success = await processPayment();
+      if (success) {
+        // Process the order
+        dispatch(clearCart());
+        navigate('/confirmation');
+      }
+    }
+  };
+
   const renderShippingForm = () => (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             First Name
           </label>
           <input
@@ -151,11 +210,11 @@ const Checkout = () => {
             className="input"
           />
           {errors.firstName && (
-            <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             Last Name
           </label>
           <input
@@ -163,11 +222,11 @@ const Checkout = () => {
             className="input"
           />
           {errors.lastName && (
-            <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.lastName.message}</p>
           )}
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             Email
           </label>
           <input
@@ -176,11 +235,11 @@ const Checkout = () => {
             className="input"
           />
           {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
           )}
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             Address
           </label>
           <input
@@ -188,11 +247,11 @@ const Checkout = () => {
             className="input"
           />
           {errors.address && (
-            <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.address.message}</p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             City
           </label>
           <input
@@ -200,11 +259,11 @@ const Checkout = () => {
             className="input"
           />
           {errors.city && (
-            <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.city.message}</p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             State
           </label>
           <input
@@ -212,11 +271,11 @@ const Checkout = () => {
             className="input"
           />
           {errors.state && (
-            <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.state.message}</p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block mb-1 text-sm font-medium text-gray-700">
             ZIP Code
           </label>
           <input
@@ -224,7 +283,7 @@ const Checkout = () => {
             className="input"
           />
           {errors.zipCode && (
-            <p className="text-red-500 text-sm mt-1">{errors.zipCode.message}</p>
+            <p className="mt-1 text-sm text-red-500">{errors.zipCode.message}</p>
           )}
         </div>
       </div>
@@ -243,13 +302,27 @@ const Checkout = () => {
   const renderPaymentForm = () => (
     <div>
       <Elements stripe={stripePromise}>
-        <PaymentForm onSuccess={() => setActiveStep(3)} />
+        <PaymentForm 
+          onSuccess={() => {
+            setPaymentSuccess(true);
+            navigate('/confirmation');
+          }}
+          onValidate={(isValid) => {
+            setIsCardValid(isValid);
+            if (isValid) {
+              setActiveStep(3);
+            }
+          }}
+          onProcessPayment={(processPaymentFn) => {
+            setProcessPayment(() => processPaymentFn);
+          }}
+        />
       </Elements>
       <div className="flex justify-end mt-6">
         <button
           type="button"
           onClick={() => setActiveStep((prevStep) => prevStep - 1)}
-          className="btn mr-4"
+          className="mr-4 btn"
         >
           Back
         </button>
@@ -260,9 +333,9 @@ const Checkout = () => {
   const renderReview = () => (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div>
-        <h3 className="text-xl font-bold mb-4">Order Summary</h3>
+        <h3 className="mb-4 text-xl font-bold">Order Summary</h3>
         {cartItems.map((item) => (
-          <div key={item.id} className="flex justify-between items-center mb-2">
+          <div key={item.id} className="flex items-center justify-between mb-2">
             <div>
               <p className="font-medium">{item.name}</p>
               <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
@@ -270,7 +343,7 @@ const Checkout = () => {
             <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
           </div>
         ))}
-        <div className="border-t mt-4 pt-4">
+        <div className="pt-4 mt-4 border-t">
           <div className="flex justify-between font-bold">
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
@@ -281,12 +354,14 @@ const Checkout = () => {
         <button
           type="button"
           onClick={() => setActiveStep((prevStep) => prevStep - 1)}
-          className="btn mr-4"
+          className="mr-4 btn"
         >
           Back
         </button>
         <button
-          type="submit"
+          type="button"
+          onClick={handlePlaceOrder}
+          disabled={!isCardValid}
           className="btn btn-primary"
         >
           Place Order
@@ -309,8 +384,8 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="container px-4 py-8 mx-auto">
+      <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex-1">
@@ -361,7 +436,7 @@ const Checkout = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="card">
             <div className="p-6">{getStepContent(activeStep)}</div>
@@ -370,9 +445,9 @@ const Checkout = () => {
         <div>
           <div className="card">
             <div className="p-6">
-              <h3 className="text-xl font-bold mb-4">Order Summary</h3>
+              <h3 className="mb-4 text-xl font-bold">Order Summary</h3>
               {cartItems.map((item) => (
-                <div key={item.id} className="flex justify-between items-center mb-2">
+                <div key={item.id} className="flex items-center justify-between mb-2">
                   <div>
                     <p className="font-medium">{item.name}</p>
                     <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
@@ -380,7 +455,7 @@ const Checkout = () => {
                   <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
-              <div className="border-t mt-4 pt-4">
+              <div className="pt-4 mt-4 border-t">
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
