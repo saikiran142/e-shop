@@ -1,18 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { addToCart } from '../store/slices/cartSlice';
-import type { CartItem } from '../store/slices/cartSlice';
-import { Filter, ShoppingCart, X } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 import { getProducts } from '../api/products';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 import { Product } from '../types';
 
 const Products = () => {
-  const dispatch = useDispatch();
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     category: 'all',
@@ -24,20 +18,6 @@ const Products = () => {
     queryKey: ['products'],
     queryFn: getProducts,
   });
-
-  const handleAddToCart = (product: Product) => {
-    const cartItem: CartItem = {
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      image: product.image,
-      description: product.description,
-      category: product.category,
-      rating: product.rating,
-      quantity: 1,
-    };
-    dispatch(addToCart(cartItem));
-  };
 
   // Filter products
   const filteredProducts = products.filter((product) => {
@@ -63,14 +43,14 @@ const Products = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="w-12 h-12 border-t-2 border-b-2 rounded-full animate-spin border-primary-500"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12">
+      <div className="py-12 text-center">
         <h2 className="text-2xl font-semibold text-red-600 dark:text-red-400">Error loading products</h2>
         <p className="mt-2 text-gray-600 dark:text-gray-400">Please try again later</p>
       </div>
@@ -78,12 +58,12 @@ const Products = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container px-4 py-8 mx-auto">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Our Products</h1>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-dark-secondary hover:bg-gray-200 dark:hover:bg-dark-accent transition-colors duration-200"
+          className="flex items-center gap-2 px-4 py-2 transition-colors duration-200 bg-gray-100 rounded-lg dark:bg-dark-secondary hover:bg-gray-200 dark:hover:bg-dark-accent"
         >
           {showFilters ? (
             <>
@@ -99,15 +79,15 @@ const Products = () => {
         </button>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col gap-8 md:flex-row">
         {showFilters && (
-          <div className="w-full md:w-64 flex-shrink-0">
+          <div className="flex-shrink-0 w-full md:w-64">
             <FilterSidebar filters={filters} onFilterChange={setFilters} />
           </div>
         )}
         
         <div className={`flex-1 ${showFilters ? 'md:ml-0' : ''}`}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sortedProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

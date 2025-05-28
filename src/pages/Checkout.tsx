@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { clearCart, selectCartItems, selectCartTotal } from '../store/slices/cartSlice';
-import type { RootState } from '../store/store';
 import { checkoutSchema, type CheckoutFormData } from '../schemas/checkoutSchema';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -20,9 +19,7 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
   const elements = useElements();
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
-  const [isValid, setIsValid] = useState(false);
   const [isStripeReady, setIsStripeReady] = useState(false);
-  const cardElementRef = useRef<any>(null);
 
   useEffect(() => {
     if (stripe && elements) {
@@ -56,19 +53,14 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
       if (error) {
         console.error('Card validation error:', error);
         setPaymentError(error.message || 'Invalid card details');
-        setIsValid(false);
-        onValidate(false);
         return false;
       } else {
         console.log('Card validation successful');
-        setIsValid(true);
         onValidate(true);
-        return true;
       }
     } catch (err) {
       console.error('Validation error:', err);
       setPaymentError('An unexpected error occurred');
-      setIsValid(false);
       onValidate(false);
       return false;
     } finally {
@@ -101,7 +93,6 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
       if (error) {
         console.error('Payment method creation failed:', error);
         setPaymentError(error.message || 'Payment failed');
-        setIsValid(false);
         onValidate(false);
         return false;
       }
@@ -109,13 +100,11 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
       if (!paymentMethod) {
         console.error('No payment method returned');
         setPaymentError('Payment method creation failed');
-        setIsValid(false);
         onValidate(false);
         return false;
       }
 
       console.log('Payment method created successfully:', paymentMethod);
-      setIsValid(true);
       onValidate(true);
       onSuccess();
       return true;
@@ -123,7 +112,6 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
     } catch (err) {
       console.error('Payment processing error:', err);
       setPaymentError('An unexpected error occurred');
-      setIsValid(false);
       onValidate(false);
       return false;
     } finally {
@@ -194,7 +182,6 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
 
 const Checkout = () => {
   const [activeStep, setActiveStep] = useState(1);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [isCardValid, setIsCardValid] = useState(false);
   const [processPayment, setProcessPayment] = useState<(() => Promise<boolean>) | null>(null);
   const [stripePromise, setStripePromise] = useState<any>(null);
@@ -209,7 +196,6 @@ const Checkout = () => {
     formState: { errors },
     trigger,
     getValues,
-    setValue,
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     mode: 'onChange',
@@ -297,7 +283,6 @@ const Checkout = () => {
 
   const handlePaymentSuccess = useCallback(() => {
     console.log('Payment success');
-    setPaymentSuccess(true);
     navigate('/confirmation');
   }, [navigate]);
 
