@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import type { RootState } from '../store/store';
 import SearchBar from './SearchBar';
@@ -23,16 +23,16 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-primary-600 to-primary-800 dark:from-dark-secondary dark:to-dark-primary shadow-lg sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+    <nav className="sticky top-0 z-50 shadow-lg bg-gradient-to-r from-primary-600 to-primary-800 dark:from-dark-secondary dark:to-dark-primary">
+      <div className="container px-4 mx-auto">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-white hover:text-primary-100 transition-colors duration-200">
+          <Link to="/" className="text-2xl font-bold text-white transition-colors duration-200 hover:text-primary-100">
             E-Shop
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="items-center hidden space-x-8 md:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
@@ -47,7 +47,7 @@ const Navbar = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+          <div className="items-center flex-1 hidden max-w-md mx-8 md:flex">
             <SearchBar />
           </div>
 
@@ -55,11 +55,11 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <Link
               to="/cart"
-              className="relative text-white hover:text-primary-100 transition-colors duration-200 p-2"
+              className="relative p-2 text-white transition-colors duration-200 hover:text-primary-100"
             >
               <FiShoppingCart className="w-6 h-6" />
               {cartTotal > 0 && (
-                <span className="absolute -top-1 -right-1 bg-white text-primary-600 text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                <span className="absolute flex items-center justify-center w-5 h-5 text-xs font-semibold bg-white rounded-full -top-1 -right-1 text-primary-600">
                   {cartTotal}
                 </span>
               )}
@@ -71,7 +71,7 @@ const Navbar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-white hover:text-primary-100 transition-colors duration-200"
+              className="p-2 text-white transition-colors duration-200 md:hidden hover:text-primary-100"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -80,7 +80,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden animate-slide-up bg-white dark:bg-dark-secondary">
+          <div className="bg-white md:hidden animate-slide-up dark:bg-dark-secondary">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navLinks.map((link) => (
                 <Link

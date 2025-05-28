@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import "react-datepicker/dist/react-datepicker.css";
@@ -264,7 +263,7 @@ const Table = () => {
         className="w-full pl-10 pr-4 py-2.5 text-gray-900 bg-white border border-gray-300 rounded-lg dark:bg-dark-primary dark:border-dark-primary focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:text-white"
         placeholder="Select date and time"
       />
-      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
+      <Calendar className="absolute w-5 h-5 text-gray-500 transform -translate-y-1/2 left-3 top-1/2 dark:text-gray-400" />
     </div>
   );
 
@@ -276,7 +275,7 @@ const Table = () => {
         {/* Date Range Selector */}
         <div className="mb-8">
           <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Date Range Selection</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Start Date & Time

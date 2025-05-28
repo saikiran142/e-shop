@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { Order } from '../types';
 
 // Mock orders data for demonstration
