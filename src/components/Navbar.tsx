@@ -19,14 +19,15 @@ const Navbar = () => {
     { path: '/', label: 'Home' },
     { path: '/products', label: 'Products' },
     { path: '/orders', label: 'Orders' },
+    { path: '/table', label: 'Table' },
   ];
 
   return (
-    <nav className="bg-white dark:bg-dark-secondary shadow-navbar sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-primary-600 to-primary-800 dark:from-dark-secondary dark:to-dark-primary shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+          <Link to="/" className="text-2xl font-bold text-white hover:text-primary-100 transition-colors duration-200">
             E-Shop
           </Link>
 
@@ -36,7 +37,9 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-gray-700 dark:text-dark-primary hover:text-primary-600 dark:hover:text-primary-400`}
+                className={`text-white hover:text-primary-100 transition-colors duration-200 ${
+                  isActive(link.path) ? 'font-semibold' : ''
+                }`}
               >
                 {link.label}
               </Link>
@@ -49,14 +52,14 @@ const Navbar = () => {
           </div>
 
           {/* Cart and Mobile Menu Button */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
             <Link
               to="/cart"
-              className="relative text-gray-700 dark:text-dark-primary hover:text-primary-600 dark:hover:text-primary-400 p-2"
+              className="relative text-white hover:text-primary-100 transition-colors duration-200 p-2"
             >
               <FiShoppingCart className="w-6 h-6" />
               {cartTotal > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 bg-white text-primary-600 text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                   {cartTotal}
                 </span>
               )}
@@ -68,7 +71,7 @@ const Navbar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-primary-600 transition-colors duration-200"
+              className="md:hidden p-2 text-white hover:text-primary-100 transition-colors duration-200"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -77,7 +80,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden animate-slide-up">
+          <div className="md:hidden animate-slide-up bg-white dark:bg-dark-secondary">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navLinks.map((link) => (
                 <Link
@@ -85,8 +88,8 @@ const Navbar = () => {
                   to={link.path}
                   className={`block px-3 py-2 rounded-md text-base font-medium ${
                     isActive(link.path)
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-primary-600'
+                      ? 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-primary hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >

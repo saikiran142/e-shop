@@ -11,22 +11,9 @@ import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 import { Product } from '../types';
 
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  category: string;
-  image: string;
-  rating: {
-    rate: number;
-    count: number;
-  };
-}
-
 const Products = () => {
   const dispatch = useDispatch();
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     category: 'all',
     priceRange: [0, 1000] as [number, number],
@@ -41,9 +28,12 @@ const Products = () => {
   const handleAddToCart = (product: Product) => {
     const cartItem: CartItem = {
       id: product.id,
-      name: product.title,
+      title: product.title,
       price: product.price,
       image: product.image,
+      description: product.description,
+      category: product.category,
+      rating: product.rating,
       quantity: 1,
     };
     dispatch(addToCart(cartItem));
@@ -116,7 +106,7 @@ const Products = () => {
           </div>
         )}
         
-        <div className="flex-1">
+        <div className={`flex-1 ${showFilters ? 'md:ml-0' : ''}`}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedProducts.map((product) => (
               <ProductCard key={product.id} product={product} />

@@ -16,7 +16,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <div className="group bg-white dark:bg-dark-secondary rounded-lg border border-gray-200 dark:border-dark-primary shadow-sm hover:shadow-md transition-all duration-300 flex flex-col">
+    <div className="group bg-white dark:bg-dark-secondary rounded-lg border border-gray-200 dark:border-dark-primary shadow-[0_8px_30px_-6px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_40px_-6px_rgba(0,0,0,0.25)] dark:shadow-[0_8px_30px_-6px_rgba(0,0,0,0.4)] dark:hover:shadow-[0_12px_40px_-6px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col hover:-translate-y-1">
       <Link to={`/products/${product.id}`} className="block p-4 flex-grow">
         <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-dark-primary mb-4 group-hover:bg-gray-50 dark:group-hover:bg-dark-accent transition-colors duration-300">
           <img
@@ -38,10 +38,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         </div>
       </Link>
-      <div className="p-4 pt-0 mt-auto">
+      
+      <div className="p-4 pt-0">
         <button
           onClick={handleAddToCart}
-          className="w-full bg-primary-600 dark:bg-primary-500 text-white py-2 px-3 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors duration-200 flex items-center justify-center gap-2 text-sm font-medium"
+          className="w-full bg-primary-600 dark:bg-primary-500 text-white py-2 px-3 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium shadow-md hover:shadow-lg"
         >
           <FiShoppingCart className="w-4 h-4" />
           <span>Add to Cart</span>

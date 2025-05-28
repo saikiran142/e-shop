@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Checkout from './pages/Checkout';
 import Confirmation from './pages/Confirmation';
+import Table from './pages/Table';
 import './index.css';
 
 // Create a client
@@ -20,9 +21,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <Router>
-          <div className="min-h-screen bg-white dark:bg-dark-primary text-gray-900 dark:text-dark-primary transition-colors duration-200">
+          <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-dark-primary dark:via-dark-secondary dark:to-dark-primary text-gray-900 dark:text-gray-100 transition-colors duration-200">
             <Navbar />
-            <div className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
@@ -31,11 +32,12 @@ function App() {
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/confirmation" element={<Confirmation />} />
+                <Route path="/table" element={<Table />} />
               </Routes>
-            </div>
-            <footer className="bg-white border-t mt-auto">
+            </main>
+            <footer className="bg-white/80 dark:bg-dark-secondary/80 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 mt-auto">
               <div className="container mx-auto px-4 py-6">
-                <p className="text-center text-gray-600">
+                <p className="text-center text-gray-600 dark:text-gray-400">
                   © 2024 E-Shop. All rights reserved.
                 </p>
               </div>
