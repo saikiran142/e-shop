@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -243,56 +243,6 @@ const Table = () => {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
-  // Generate page numbers
-  const getPageNumbers = () => {
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      // Show all pages if total pages are less than max visible
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
-    } else {
-      // Always show first page
-      pageNumbers.push(1);
-      
-      // Calculate start and end of visible pages
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
-      
-      // Adjust if at the start
-      if (currentPage <= 2) {
-        endPage = 4;
-      }
-      
-      // Adjust if at the end
-      if (currentPage >= totalPages - 1) {
-        startPage = totalPages - 3;
-      }
-      
-      // Add ellipsis if needed
-      if (startPage > 2) {
-        pageNumbers.push('...');
-      }
-      
-      // Add middle pages
-      for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-      }
-      
-      // Add ellipsis if needed
-      if (endPage < totalPages - 1) {
-        pageNumbers.push('...');
-      }
-      
-      // Always show last page
-      pageNumbers.push(totalPages);
-    }
-    
-    return pageNumbers;
-  };
-
   const toggleColumn = (columnId: string) => {
     setColumns(columns.map(col => 
       col.id === columnId ? { ...col, visible: !col.visible } : col
@@ -324,93 +274,71 @@ const Table = () => {
         <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">Data Table</h1>
         
         {/* Date Range Selector */}
-        <div className="mb-6 p-6 bg-white dark:bg-dark-secondary rounded-lg shadow-card">
+        <div className="mb-8">
           <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Date Range Selection</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 Start Date & Time
               </label>
-              <div className="flex gap-4">
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date: Date | null) => setStartDate(date)}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  dateFormat="MMMM d, yyyy"
-                  className="w-full"
-                  calendarClassName="react-datepicker-custom"
-                  showYearDropdown
-                  scrollableYearDropdown
-                  yearDropdownItemNumber={15}
-                  showMonthDropdown
-                  scrollableMonthYearDropdown
-                  customInput={<CustomInput />}
-                  popperClassName="react-datepicker-popper"
-                  popperPlacement="bottom-start"
-                  showPopperArrow={false}
-                />
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date: Date | null) => setStartDate(date)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeFormat="HH:mm"
-                  timeIntervals={1}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="w-32"
-                  calendarClassName="react-datepicker-custom"
-                  customInput={<CustomInput />}
-                  popperClassName="react-datepicker-popper"
-                  popperPlacement="bottom-start"
-                  showPopperArrow={false}
-                />
-              </div>
+              <DatePicker
+                selected={startDate}
+                onChange={(date: Date | null) => setStartDate(date)}
+                selectsStart
+                startDate={startDate}
+                endDate={endDate}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="MMMM d, yyyy h:mm aa"
+                className="w-full"
+                calendarClassName="react-datepicker-custom"
+                showYearDropdown
+                scrollableYearDropdown
+                yearDropdownItemNumber={15}
+                showMonthDropdown
+                scrollableMonthYearDropdown
+                customInput={<CustomInput />}
+                popperClassName="react-datepicker-popper"
+                popperPlacement="bottom-start"
+                showPopperArrow={false}
+                inline={false}
+                calendarStartDay={1}
+                timeClassName={() => "react-datepicker__time-container"}
+              />
             </div>
             <div>
               <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 End Date & Time
               </label>
-              <div className="flex gap-4">
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date: Date | null) => setEndDate(date)}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate || undefined}
-                  dateFormat="MMMM d, yyyy"
-                  className="w-full"
-                  calendarClassName="react-datepicker-custom"
-                  showYearDropdown
-                  scrollableYearDropdown
-                  yearDropdownItemNumber={15}
-                  showMonthDropdown
-                  scrollableMonthYearDropdown
-                  customInput={<CustomInput />}
-                  popperClassName="react-datepicker-popper"
-                  popperPlacement="bottom-start"
-                  showPopperArrow={false}
-                />
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date: Date | null) => setEndDate(date)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeFormat="HH:mm"
-                  timeIntervals={1}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="w-32"
-                  calendarClassName="react-datepicker-custom"
-                  customInput={<CustomInput />}
-                  popperClassName="react-datepicker-popper"
-                  popperPlacement="bottom-start"
-                  showPopperArrow={false}
-                />
-              </div>
+              <DatePicker
+                selected={endDate}
+                onChange={(date: Date | null) => setEndDate(date)}
+                selectsEnd
+                startDate={startDate}
+                endDate={endDate}
+                minDate={startDate || undefined}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="MMMM d, yyyy h:mm aa"
+                className="w-full"
+                calendarClassName="react-datepicker-custom"
+                showYearDropdown
+                scrollableYearDropdown
+                yearDropdownItemNumber={15}
+                showMonthDropdown
+                scrollableMonthYearDropdown
+                customInput={<CustomInput />}
+                popperClassName="react-datepicker-popper"
+                popperPlacement="bottom-start"
+                showPopperArrow={false}
+                inline={false}
+                calendarStartDay={1}
+                timeClassName={() => "react-datepicker__time-container"}
+              />
             </div>
           </div>
         </div>
@@ -504,22 +432,21 @@ const Table = () => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            {getPageNumbers().map((pageNumber, index) => (
+            {Array.from({ length: totalPages }, (_, index) => (
               <button
                 key={index}
-                onClick={() => typeof pageNumber === 'number' ? handlePageChange(pageNumber) : null}
-                disabled={typeof pageNumber !== 'number'}
+                onClick={() => handlePageChange(index + 1)}
                 className={`px-3 py-1 text-sm rounded ${
-                  pageNumber === currentPage
+                  index + 1 === currentPage
                     ? 'bg-primary-600 text-white'
                     : 'bg-white text-gray-700 dark:bg-dark-primary dark:text-gray-300'
                 } ${
-                  typeof pageNumber !== 'number'
+                  index + 1 === currentPage
                     ? 'cursor-default'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
               >
-                {pageNumber}
+                {index + 1}
               </button>
             ))}
             <button
