@@ -20,17 +20,22 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [isStripeReady, setIsStripeReady] = useState(false);
+  const [cardElement, setCardElement] = useState<any>(null);
 
+  // Initialize Stripe readiness and card element
   useEffect(() => {
     if (stripe && elements) {
-      console.log('Stripe and elements are ready');
-      setIsStripeReady(true);
+      const card = elements.getElement(CardElement);
+      if (card) {
+        setCardElement(card);
+        setIsStripeReady(true);
+      }
     }
   }, [stripe, elements]);
 
   const validateCard = async () => {
-    if (!stripe || !elements) {
-      console.error('Stripe or elements not available');
+    if (!stripe || !cardElement) {
+      console.error('Stripe or card element not available');
       return false;
     }
 
@@ -38,12 +43,6 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
     setPaymentError(null);
 
     try {
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        console.error('Card element not found');
-        return false;
-      }
-
       console.log('Validating card...');
       const { error } = await stripe.createPaymentMethod({
         type: 'card',
@@ -57,6 +56,7 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
       } else {
         console.log('Card validation successful');
         onValidate(true);
+        return true;
       }
     } catch (err) {
       console.error('Validation error:', err);
@@ -68,62 +68,57 @@ const PaymentForm = ({ onSuccess, onValidate, onProcessPayment }: {
     }
   };
 
-  const processPayment = useCallback(async () => {
-    if (!stripe || !elements) {
-      console.error('Stripe or elements not available');
-      return false;
-    }
-
-    setProcessing(true);
-    setPaymentError(null);
-
-    try {
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        console.error('Card element not found');
-        return false;
-      }
-
-      console.log('Creating payment method...');
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-      });
-
-      if (error) {
-        console.error('Payment method creation failed:', error);
-        setPaymentError(error.message || 'Payment failed');
-        onValidate(false);
-        return false;
-      }
-
-      if (!paymentMethod) {
-        console.error('No payment method returned');
-        setPaymentError('Payment method creation failed');
-        onValidate(false);
-        return false;
-      }
-
-      console.log('Payment method created successfully:', paymentMethod);
-      onValidate(true);
-      onSuccess();
-      return true;
-
-    } catch (err) {
-      console.error('Payment processing error:', err);
-      setPaymentError('An unexpected error occurred');
-      onValidate(false);
-      return false;
-    } finally {
-      setProcessing(false);
-    }
-  }, [stripe, elements, onSuccess, onValidate]);
-
+  // Set up payment processor
   useEffect(() => {
-    if (isStripeReady) {
+    if (isStripeReady && cardElement) {
+      const processPayment = async () => {
+        if (!stripe || !cardElement) {
+          console.error('Stripe or card element not available');
+          return false;
+        }
+
+        setProcessing(true);
+        setPaymentError(null);
+
+        try {
+          console.log('Creating payment method...');
+          const { error, paymentMethod } = await stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+          });
+
+          if (error) {
+            console.error('Payment method creation failed:', error);
+            setPaymentError(error.message || 'Payment failed');
+            onValidate(false);
+            return false;
+          }
+
+          if (!paymentMethod) {
+            console.error('No payment method returned');
+            setPaymentError('Payment method creation failed');
+            onValidate(false);
+            return false;
+          }
+
+          console.log('Payment method created successfully:', paymentMethod);
+          onValidate(true);
+          onSuccess();
+          return true;
+
+        } catch (err) {
+          console.error('Payment processing error:', err);
+          setPaymentError('An unexpected error occurred');
+          onValidate(false);
+          return false;
+        } finally {
+          setProcessing(false);
+        }
+      };
+
       onProcessPayment(processPayment);
     }
-  }, [onProcessPayment, processPayment, isStripeReady]);
+  }, [isStripeReady, stripe, cardElement, onSuccess, onValidate, onProcessPayment]);
 
   return (
     <div className="space-y-6">
@@ -231,7 +226,6 @@ const Checkout = () => {
 
   const onSubmit = async (data: CheckoutFormData) => {
     console.log('Form submitted with data:', data);
-    console.log('Current step:', activeStep);
     
     if (activeStep === 1) {
       try {
@@ -283,46 +277,42 @@ const Checkout = () => {
 
   const handlePaymentSuccess = useCallback(() => {
     console.log('Payment success');
+    dispatch(clearCart());
     navigate('/confirmation');
-  }, [navigate]);
+  }, [navigate, dispatch]);
 
   const handleProcessPayment = useCallback((processPaymentFn: () => Promise<boolean>) => {
     console.log('Setting payment processor');
     setProcessPayment(() => processPaymentFn);
   }, []);
 
-  const handlePlaceOrder = useCallback(async () => {
-    try {
-      if (!isCardValid) {
-        console.error('Card is not valid');
-        return;
-      }
-
-      if (!processPayment) {
-        console.error('Payment processor not available');
-        return;
-      }
-
-      console.log('Processing payment...');
-      const success = await processPayment();
-      console.log('Payment result:', success);
-
-      if (success) {
-        console.log('Payment successful, clearing cart and navigating...');
-        dispatch(clearCart());
-        navigate('/confirmation');
-      } else {
-        console.error('Payment failed');
-      }
-    } catch (error) {
-      console.error('Error placing order:', error);
-    }
-  }, [isCardValid, processPayment, dispatch, navigate]);
-
   const renderShippingForm = () => (
     <div className="space-y-6">
       <form 
-        onSubmit={handleSubmit(onSubmit)} 
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const formData = getValues();
+          console.log('Form data:', formData);
+          
+          // Validate all shipping fields
+          const shippingFields = [
+            'firstName',
+            'lastName',
+            'email',
+            'address',
+            'city',
+            'state',
+            'zipCode'
+          ] as const;
+          
+          const isValid = await trigger(shippingFields);
+          console.log('Validation result:', isValid);
+          
+          if (isValid) {
+            console.log('Form is valid, moving to step 2');
+            setActiveStep(2);
+          }
+        }}
         className="grid grid-cols-1 gap-4 md:grid-cols-2"
       >
         <div>
@@ -441,30 +431,6 @@ const Checkout = () => {
           <button
             type="submit"
             className="btn btn-primary"
-            onClick={async () => {
-              console.log('Next button clicked');
-              const formData = getValues();
-              console.log('Form data at click:', formData);
-              
-              // Manually trigger validation
-              const shippingFields = [
-                'firstName',
-                'lastName',
-                'email',
-                'address',
-                'city',
-                'state',
-                'zipCode'
-              ] as const;
-              
-              const isValid = await trigger(shippingFields);
-              console.log('Manual validation result:', isValid);
-              
-              if (isValid) {
-                console.log('Manual validation passed, moving to step 2');
-                setActiveStep(2);
-              }
-            }}
           >
             Next
           </button>
@@ -488,7 +454,6 @@ const Checkout = () => {
   };
 
   const renderPaymentForm = () => {
-    console.log('Rendering payment form, stripePromise:', !!stripePromise);
     if (!stripePromise) {
       return (
         <div className="flex items-center justify-center p-6">
@@ -520,36 +485,84 @@ const Checkout = () => {
   };
 
   const renderReview = () => (
-    <div>
-      <div>
+    <div className="space-y-6">
+      <div className="p-6 bg-white rounded-lg dark:bg-dark-secondary shadow-card">
         <h3 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Order Summary</h3>
-        {cartItems.map((item) => (
-          <div key={item.id} className="flex items-center justify-between mb-2">
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">{item.title}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity}</p>
+        {cartItems && cartItems.length > 0 ? (
+          <>
+            {cartItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-dark-primary">
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={item.image} 
+                    alt={item.title} 
+                    className="object-contain w-16 h-16 rounded-lg"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">{item.title}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity}</p>
+                  </div>
+                </div>
+                <p className="font-medium text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</p>
+              </div>
+            ))}
+            <div className="pt-4 mt-4 space-y-2">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Subtotal</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Shipping</span>
+                <span>Free</span>
+              </div>
+              <div className="flex justify-between pt-2 mt-2 border-t border-gray-200 dark:border-dark-primary">
+                <span className="font-bold text-gray-900 dark:text-white">Total</span>
+                <span className="font-bold text-gray-900 dark:text-white">${total.toFixed(2)}</span>
+              </div>
             </div>
-            <p className="font-medium text-gray-900 dark:text-white">${(item.price * item.quantity).toFixed(2)}</p>
-          </div>
-        ))}
-        <div className="pt-4 mt-4 border-t border-gray-200 dark:border-dark-primary">
-          <div className="flex justify-between font-bold text-gray-900 dark:text-white">
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
-          </div>
-        </div>
+          </>
+        ) : (
+          <p className="text-gray-600 dark:text-gray-400">No items in cart</p>
+        )}
       </div>
-      <div className="flex justify-end mt-6">
+
+      <div className="flex justify-end space-x-4">
         <button
           type="button"
           onClick={() => setActiveStep(2)}
-          className="mr-4 btn"
+          className="btn"
         >
           Back
         </button>
         <button
           type="button"
-          onClick={handlePlaceOrder}
+          onClick={async () => {
+            if (!isCardValid) {
+              console.error('Card is not valid');
+              return;
+            }
+
+            if (!processPayment) {
+              console.error('Payment processor not available');
+              return;
+            }
+
+            try {
+              console.log('Processing payment...');
+              const success = await processPayment();
+              console.log('Payment result:', success);
+
+              if (success) {
+                console.log('Payment successful, clearing cart and navigating...');
+                dispatch(clearCart());
+                navigate('/confirmation');
+              } else {
+                console.error('Payment failed');
+              }
+            } catch (error) {
+              console.error('Error placing order:', error);
+            }
+          }}
           disabled={!isCardValid}
           className={`btn btn-primary ${!isCardValid ? 'opacity-50 cursor-not-allowed' : ''}`}
         >

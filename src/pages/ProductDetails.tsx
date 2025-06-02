@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/slices/cartSlice';
-import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Truck, RefreshCw, Shield, Star } from 'lucide-react';
 import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { getProduct } from '../api/products';
 import { Product } from '../types';
@@ -81,28 +81,38 @@ const ProductDetails = () => {
         </div>
 
         {/* Product Info */}
-        <div className="p-6 bg-white rounded-lg dark:bg-dark-secondary shadow-card">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-            {product.title}
-          </h1>
+        <div className="space-y-6">
+          <div>
+            <h1 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+              {product.title}
+            </h1>
 
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center text-yellow-400">
-              <FiStar className="w-5 h-5" />
-              <span className="ml-1 text-gray-600 dark:text-gray-400">
-                {product.rating.rate} ({product.rating.count} reviews)
-              </span>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center text-yellow-400">
+                <FiStar className="w-5 h-5" />
+                <span className="ml-1 text-gray-600 dark:text-gray-400">
+                  {product.rating.rate} ({product.rating.count} reviews)
+                </span>
+              </div>
             </div>
+
+            <p className="mb-6 text-3xl font-bold text-primary-600 dark:text-primary-400">
+              ${product.price.toFixed(2)}
+            </p>
+
+            <p className="mb-6 text-gray-600 dark:text-gray-400">
+              {product.description}
+            </p>
           </div>
 
-          <p className="mb-6 text-3xl font-bold text-primary-600 dark:text-primary-400">
-            ${product.price.toFixed(2)}
-          </p>
+          {/* Stock Status */}
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <p className="text-green-700 dark:text-green-400 font-medium">
+              In Stock - Ready to Ship
+            </p>
+          </div>
 
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
-            {product.description}
-          </p>
-
+          {/* Add to Cart Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <label htmlFor="quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -131,6 +141,32 @@ const ProductDetails = () => {
             </button>
           </div>
 
+          {/* Product Features */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="flex items-center gap-2 p-4 bg-gray-50 dark:bg-dark-primary rounded-lg">
+              <Truck className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Free Shipping</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">On orders over $50</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-4 bg-gray-50 dark:bg-dark-primary rounded-lg">
+              <RefreshCw className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Easy Returns</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">30 day return policy</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-4 bg-gray-50 dark:bg-dark-primary rounded-lg">
+              <Shield className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Warranty</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">2 year warranty</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Details */}
           <div className="pt-6 mt-8 border-t border-gray-200 dark:border-dark-primary">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               Product Details
@@ -140,8 +176,43 @@ const ProductDetails = () => {
                 <span className="font-medium text-gray-900 dark:text-white">Category:</span>{' '}
                 {product.category}
               </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium text-gray-900 dark:text-white">Product ID:</span>{' '}
+                {product.id}
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium text-gray-900 dark:text-white">Rating:</span>{' '}
+                {product.rating.rate} ({product.rating.count} reviews)
+              </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-12">
+        <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Customer Reviews</h2>
+        <div className="p-6 bg-white rounded-lg dark:bg-dark-secondary shadow-card">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, index) => (
+                <Star
+                  key={index}
+                  className={`w-5 h-5 ${
+                    index < Math.floor(product.rating.rate)
+                      ? 'text-yellow-400 fill-yellow-400'
+                      : 'text-gray-300 dark:text-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-lg font-medium text-gray-900 dark:text-white">
+              {product.rating.rate} out of 5
+            </p>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Based on {product.rating.count} customer reviews
+          </p>
         </div>
       </div>
 
@@ -180,7 +251,7 @@ const ProductDetails = () => {
                 </Link>
                 <div className="p-4 pt-0 mt-auto">
                   <button
-                    onClick={() => dispatch(addToCart({ ...suggestedProduct, quantity }))}
+                    onClick={() => dispatch(addToCart({ ...suggestedProduct, quantity: 1 }))}
                     className="w-full bg-primary-600 dark:bg-primary-500 text-white py-2.5 px-4 rounded-lg hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors duration-200 flex items-center justify-center gap-2 group-hover:shadow-lg"
                   >
                     <ShoppingCart className="w-5 h-5" />

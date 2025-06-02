@@ -37,9 +37,9 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
   };
 
   return (
-    <div className="bg-white dark:bg-dark-secondary rounded-lg shadow-card p-6">
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-dark-primary">
-        <div className="p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+    <div className="p-6 bg-white rounded-lg dark:bg-dark-secondary shadow-card">
+      <div className="flex items-center gap-4 pb-4 mb-6 border-b border-gray-200 dark:border-dark-primary">
+        <div className="p-2 rounded-lg bg-primary-50 dark:bg-primary-900/20">
           <FiFilter className="w-5 h-5 text-primary-600 dark:text-primary-400" />
         </div>
         <div>
@@ -57,7 +57,7 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           <select
             value={filters.category}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="w-full rounded-lg border-gray-300 dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 bg-white dark:bg-dark-primary shadow-sm text-gray-900 dark:text-white"
+            className="w-full text-gray-900 bg-white border-gray-300 rounded-lg shadow-sm dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-primary dark:text-white"
           >
             {categories.map((category) => (
               <option key={category} value={category}>
@@ -74,24 +74,24 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           </label>
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
+              <span className="absolute text-gray-500 -translate-y-1/2 left-3 top-1/2 dark:text-gray-400">$</span>
               <input
                 type="number"
                 value={filters.priceRange[0]}
                 onChange={(e) => handlePriceRangeChange(0, Number(e.target.value))}
-                className="w-full pl-7 pr-3 rounded-lg border-gray-300 dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 bg-white dark:bg-dark-primary shadow-sm text-gray-900 dark:text-white"
+                className="w-full pr-3 text-gray-900 bg-white border-gray-300 rounded-lg shadow-sm pl-7 dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-primary dark:text-white"
                 min="0"
                 placeholder="Min"
               />
             </div>
             <span className="text-gray-500 dark:text-gray-400">-</span>
             <div className="relative flex-1">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
+              <span className="absolute text-gray-500 -translate-y-1/2 left-3 top-1/2 dark:text-gray-400">$</span>
               <input
                 type="number"
                 value={filters.priceRange[1]}
                 onChange={(e) => handlePriceRangeChange(1, Number(e.target.value))}
-                className="w-full pl-7 pr-3 rounded-lg border-gray-300 dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 bg-white dark:bg-dark-primary shadow-sm text-gray-900 dark:text-white"
+                className="w-full pr-3 text-gray-900 bg-white border-gray-300 rounded-lg shadow-sm pl-7 dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-primary dark:text-white"
                 min="0"
                 placeholder="Max"
               />
@@ -107,7 +107,7 @@ const FilterSidebar = ({ filters, onFilterChange }: FilterSidebarProps) => {
           <select
             value={filters.sortBy}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="w-full rounded-lg border-gray-300 dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 bg-white dark:bg-dark-primary shadow-sm text-gray-900 dark:text-white"
+            className="w-full text-gray-900 bg-white border-gray-300 rounded-lg shadow-sm dark:border-dark-primary focus:border-primary-500 focus:ring-primary-500 dark:bg-dark-primary dark:text-white"
           >
             <option value="newest">Newest</option>
             <option value="price-asc">Price: Low to High</option>
